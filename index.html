@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>АСУ Взвешивания ТС</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="logo">
+          <span class="logo__mark">⚖️</span>
+          <span class="logo__text">АСУ Взвешивания</span>
+        </div>
+        <nav class="sidebar__nav">
+          <a href="#overview" class="nav__link active">Обзор</a>
+          <a href="#session" class="nav__link">Сессия</a>
+          <a href="#history" class="nav__link">История</a>
+          <a href="#alerts" class="nav__link">События</a>
+        </nav>
+        <div class="sidebar__footer">
+          <p class="sidebar__user">
+            <span class="sidebar__user-name">Оператор</span>
+            <span class="sidebar__user-role">Смена А</span>
+          </p>
+          <button class="sidebar__logout" type="button">Выход</button>
+        </div>
+      </aside>
+
+      <main class="content">
+        <header class="content__header">
+          <div>
+            <h1>Автоматизированная система взвешивания</h1>
+            <p class="subtitle">
+              Мониторинг загрузки поста, контроль перегруза и управление
+              взвешиваниями в реальном времени.
+            </p>
+          </div>
+          <div class="status">
+            <span class="status__label">Статус поста</span>
+            <span class="status__value status__value--online">Работает</span>
+          </div>
+        </header>
+
+        <section id="overview" class="card-grid">
+          <article class="card">
+            <header class="card__header">
+              <h2>Текущий замер</h2>
+              <span class="badge" id="sessionBadge">Ожидание</span>
+            </header>
+            <div class="gauge">
+              <svg viewBox="0 0 36 20" class="gauge__chart">
+                <path
+                  class="gauge__background"
+                  d="M2 18 A16 16 0 0 1 34 18"
+                ></path>
+                <path
+                  id="gaugeProgress"
+                  class="gauge__progress"
+                  d="M2 18 A16 16 0 0 1 34 18"
+                  stroke-dasharray="0 100"
+                ></path>
+                <circle id="gaugeNeedle" class="gauge__needle" cx="18" cy="18" r="1.5"></circle>
+              </svg>
+              <div class="gauge__info">
+                <p class="gauge__value">
+                  <span id="currentWeight">0</span>
+                  <span class="gauge__unit">кг</span>
+                </p>
+                <p class="gauge__limit">
+                  Норма: <span id="weightLimit">40 000</span> кг
+                </p>
+              </div>
+            </div>
+          </article>
+
+          <article class="card">
+            <header class="card__header">
+              <h2>Параметры ТС</h2>
+              <button class="card__action" type="button" id="resetForm">
+                Очистить
+              </button>
+            </header>
+            <form class="form" id="vehicleForm">
+              <div class="form__group">
+                <label for="plate">Госномер</label>
+                <input
+                  type="text"
+                  id="plate"
+                  name="plate"
+                  placeholder="А123ВС77"
+                  maxlength="10"
+                  required
+                />
+              </div>
+              <div class="form__group">
+                <label for="driver">Водитель</label>
+                <input
+                  type="text"
+                  id="driver"
+                  name="driver"
+                  placeholder="ФИО водителя"
+                />
+              </div>
+              <div class="form__group">
+                <label for="cargo">Груз</label>
+                <input
+                  type="text"
+                  id="cargo"
+                  name="cargo"
+                  placeholder="Тип груза"
+                />
+              </div>
+              <div class="form__group form__group--inline">
+                <div>
+                  <label for="tare">Тара, кг</label>
+                  <input type="number" id="tare" name="tare" min="0" />
+                </div>
+                <div>
+                  <label for="limit">Допустимая масса, кг</label>
+                  <input
+                    type="number"
+                    id="limit"
+                    name="limit"
+                    min="0"
+                    value="40000"
+                  />
+                </div>
+              </div>
+              <div class="form__group">
+                <label for="notes">Комментарий</label>
+                <textarea
+                  id="notes"
+                  name="notes"
+                  rows="3"
+                  placeholder="Дополнительная информация"
+                ></textarea>
+              </div>
+            </form>
+          </article>
+
+          <article id="session" class="card">
+            <header class="card__header">
+              <h2>Управление взвешиванием</h2>
+            </header>
+            <div class="session">
+              <div class="session__controls">
+                <button class="button button--primary" id="startBtn" type="button">
+                  Начать взвешивание
+                </button>
+                <button class="button" id="completeBtn" type="button" disabled>
+                  Завершить
+                </button>
+              </div>
+              <dl class="session__info">
+                <div>
+                  <dt>Номер сессии</dt>
+                  <dd id="sessionId">—</dd>
+                </div>
+                <div>
+                  <dt>Начало</dt>
+                  <dd id="sessionStart">—</dd>
+                </div>
+                <div>
+                  <dt>Оператор</dt>
+                  <dd>Иван Петров</dd>
+                </div>
+              </dl>
+              <div class="session__metrics">
+                <div class="metric">
+                  <span class="metric__label">Брутто</span>
+                  <span class="metric__value" id="grossWeight">0 кг</span>
+                </div>
+                <div class="metric">
+                  <span class="metric__label">Тара</span>
+                  <span class="metric__value" id="tareWeight">0 кг</span>
+                </div>
+                <div class="metric">
+                  <span class="metric__label">Нетто</span>
+                  <span class="metric__value" id="netWeight">0 кг</span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section id="history" class="card">
+          <header class="card__header">
+            <h2>Журнал взвешиваний</h2>
+            <div class="filters">
+              <label class="filters__label">
+                <span>Состояние</span>
+                <select id="historyFilter">
+                  <option value="all">Все</option>
+                  <option value="normal">В норме</option>
+                  <option value="overload">Перегруз</option>
+                </select>
+              </label>
+              <button class="card__action" id="exportHistory" type="button">
+                Экспорт CSV
+              </button>
+            </div>
+          </header>
+          <div class="table-wrapper">
+            <table class="table" aria-describedby="history">
+              <thead>
+                <tr>
+                  <th>Дата</th>
+                  <th>Номер</th>
+                  <th>Госномер</th>
+                  <th>Груз</th>
+                  <th>Брутто</th>
+                  <th>Нетто</th>
+                  <th>Статус</th>
+                </tr>
+              </thead>
+              <tbody id="historyTable"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="alerts" class="card">
+          <header class="card__header">
+            <h2>События и уведомления</h2>
+            <button class="card__action" id="clearAlerts" type="button">
+              Очистить
+            </button>
+          </header>
+          <ul class="alerts" id="alertsList"></ul>
+        </section>
+      </main>
+    </div>
+
+    <template id="alertTemplate">
+      <li class="alert">
+        <span class="alert__time"></span>
+        <span class="alert__text"></span>
+      </li>
+    </template>
+
+    <template id="historyRowTemplate">
+      <tr>
+        <td data-cell="Дата"></td>
+        <td data-cell="Номер"></td>
+        <td data-cell="Госномер"></td>
+        <td data-cell="Груз"></td>
+        <td data-cell="Брутто"></td>
+        <td data-cell="Нетто"></td>
+        <td data-cell="Статус"></td>
+      </tr>
+    </template>
+
+    <script src="script.js" defer></script>
+  </body>
+</html>
